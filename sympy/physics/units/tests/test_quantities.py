@@ -115,8 +115,12 @@ def test_abs():
     v_w2 = Quantity('v_w2', length/time, meter/second)
     v_w3 = Quantity('v_w3', length/time, meter/second)
     expr = v_w3 - Abs(v_w1 - v_w2)
-    
-    assert Quantity.get_dimensional_expr(expr) == Abs(length/time)
+
+    Dq = Dimension(Quantity.get_dimensional_expr(expr))
+    assert Dimension.get_dimensional_dependencies(Dq) == {
+        'length': 1,
+        'time': -1,
+    }
 
 def test_check_unit_consistency():
     return  # TODO remove

@@ -17,7 +17,7 @@ from __future__ import division
 import collections
 
 from sympy.core.compatibility import reduce, string_types
-from sympy import sympify, Integer, Matrix, Symbol, S
+from sympy import sympify, Integer, Matrix, Symbol, S, Abs
 from sympy.core.expr import Expr
 
 
@@ -185,8 +185,8 @@ class Dimension(Expr):
             return {'dimensionless': 1}
         return dimdep
 
-    @staticmethod
-    def _get_dimensional_dependencies_for_name(name):
+    @classmethod
+    def _get_dimensional_dependencies_for_name(cls, name):
 
         if name.is_Symbol:
             if name.name in Dimension._dimensional_dependencies:
@@ -210,6 +210,17 @@ class Dimension(Expr):
                 return {}
             dim = Dimension._get_dimensional_dependencies_for_name(name.base)
             return {k: v*name.exp for (k, v) in dim.items()}
+
+        if name.is_Function:
+            #import pytest
+            #pytest.set_trace()
+            #from .quantities import Quantityargs
+            # FIXME: need to import function
+            result = eval(str(name))
+            #result = name.eval(length/time)
+            # *(Quantity.get_dimensional_expr2(arg) for arg in name.args)
+            if isinstance(result, cls):
+                return result.get_dimensional_dependencies()
 
     @property
     def is_dimensionless(self):

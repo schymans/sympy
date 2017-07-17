@@ -1,0 +1,27 @@
+From 0dffeedf899017e88c85183dc38b25d97ebec65b Mon Sep 17 00:00:00 2001
+From: Stan Schymanski <stan.schymanski@env.ethz.ch>
+Date: Mon, 17 Jul 2017 10:21:35 +0200
+Subject: [PATCH] xxx
+To: Jiri Kuncar <jiri.kuncar@gmail.com>
+
+---
+ sympy/physics/units/quantities.py | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/sympy/physics/units/quantities.py b/sympy/physics/units/quantities.py
+index 1d6bc127b7..51b4b114f5 100644
+--- a/sympy/physics/units/quantities.py
++++ b/sympy/physics/units/quantities.py
+@@ -96,6 +96,9 @@ def get_dimensional_expr(expr):
+             return Quantity.get_dimensional_expr(expr.base) ** expr.exp
+         elif isinstance(expr, Add):
+             return Quantity.get_dimensional_expr(expr.args[0])
++        elif isinstance(expr, Function):
++            fds = [Quantity.get_dimensional_expr(arg) for arg in expr.args]
++            return expr.func(*fds)
+         elif isinstance(expr, Quantity):
+             return expr.dimension.name
+         return 1
+-- 
+2.11.0
+

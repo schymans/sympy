@@ -96,6 +96,9 @@ class Quantity(AtomicExpr):
             return Quantity.get_dimensional_expr(expr.base) ** expr.exp
         elif isinstance(expr, Add):
             return Quantity.get_dimensional_expr(expr.args[0])
+        elif isinstance(expr, Function):
+            fds = [Quantity.get_dimensional_expr(arg) for arg in expr.args]
+            return expr.func(*fds)
         elif isinstance(expr, Quantity):
             return expr.dimension.name
         return 1

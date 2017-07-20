@@ -8,9 +8,9 @@ from sympy import (
 from sympy.physics.units import (
     amount_of_substance, convert_to, find_unit, volume)
 from sympy.physics.units.definitions import (
-    amu, au, centimeter, coulomb, day, foot, grams, hour, inch, kg, km, m,
-    meter, mile, millimeter, minute, mole, quart, s, second, speed_of_light,
-    steradian)
+    amu, au, centimeter, coulomb, day, energy, foot, grams, hour, inch, kg,
+    km, m, meter, mile, millimeter, minute, mole, pressure, quart, s,
+    second, speed_of_light, steradian, temperature)
 from sympy.physics.units.dimensions import Dimension, charge, length, time
 from sympy.physics.units.prefixes import PREFIXES, kilo
 from sympy.physics.units.quantities import Quantity
@@ -141,8 +141,8 @@ def test_check_unit_consistency():
 
     raises(ValueError, lambda: check_unit_consistency(u + w))
     raises(ValueError, lambda: check_unit_consistency(u - w))
-    raises(TypeError, lambda: check_unit_consistency(u + 1))
-    raises(TypeError, lambda: check_unit_consistency(u - 1))
+    raises(ValueError, lambda: check_unit_consistency(u + 1))
+    raises(ValueError, lambda: check_unit_consistency(u - 1))
 
 
 def test_mul_div():

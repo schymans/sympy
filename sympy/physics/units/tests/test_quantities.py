@@ -228,6 +228,7 @@ def test_Quantity_derivative():
 
 
 def test_sum_of_incompatible_quantities():
+    raises(ValueError, lambda: meter + 1)
     raises(ValueError, lambda: meter + second)
     raises(ValueError, lambda: 2 * meter + second)
     raises(ValueError, lambda: 2 * meter + 3 * second)
@@ -276,3 +277,17 @@ def test_factor_and_dimension_with_Abs():
     v_w1 = Quantity('v_w1', length/time, S(3)/2*meter/second)
     expr = v_w1 - Abs(v_w1)
     assert (0, lenth/time) == Quantity._collect_factor_and_dimension(expr)
+
+
+def test_quantity_postprocessing():
+    q1 = Quantity('q1', length*pressure**2*temperature/time)
+    q2 = Quantity('q2', energy*pressure*temperature/(length**2*time))
+    assert q1 + q2
+    q = q1 + q2
+    Dq = Dimension(Quantity.get_dimensional_expr(q))
+    assert Dimension.get_dimensional_dependencies(Dq) == {
+        'length': -1,
+        'mass': 2,
+        'temperature': 1,
+        'time': -5,
+    }

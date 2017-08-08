@@ -7,7 +7,8 @@ Physical quantities.
 from __future__ import division
 
 from sympy import (
-    Abs, Add, AtomicExpr, Basic, Function, Mul, Pow, S, Symbol, sympify)
+    Abs, Add, AtomicExpr, Basic, Derivative, Function, Mul, Pow, S, Symbol,
+    sympify)
 from sympy.core.compatibility import string_types
 from sympy.physics.units import Dimension, dimensions
 from sympy.physics.units.prefixes import Prefix
@@ -42,9 +43,11 @@ class Quantity(AtomicExpr):
                 raise ValueError("quantity value and dimension mismatch")
 
         # replace all prefixes by their ratio to canonical units:
-        scale_factor = scale_factor.replace(lambda x: isinstance(x, Prefix), lambda x: x.scale_factor)
+        scale_factor = scale_factor.replace(
+            lambda x: isinstance(x, Prefix), lambda x: x.scale_factor)
         # replace all quantities by their ratio to canonical units:
-        scale_factor = scale_factor.replace(lambda x: isinstance(x, Quantity), lambda x: x.scale_factor)
+        scale_factor = scale_factor.replace(
+            lambda x: isinstance(x, Quantity), lambda x: x.scale_factor)
 
         if abbrev is None:
             abbrev = name
@@ -101,6 +104,11 @@ class Quantity(AtomicExpr):
         elif isinstance(expr, Function):
             fds = [Quantity.get_dimensional_expr(arg) for arg in expr.args]
             return expr.func(*fds)
+        elif isinstance(expr, Derivative):
+            dim = Quantity.get_dimensional_expr(expr.args[0])
+            for independent in expr.args[1:]:
+                dim /= Quantity.get_dimensional_expr(independent)
+            return dim
         elif isinstance(expr, Quantity):
             return expr.dimension.name
         return 1
@@ -114,15 +122,17 @@ class Quantity(AtomicExpr):
             factor = 1
             dimension = Dimension(1)
             for arg in expr.args:
-                arg_factor, arg_dim = Quantity._collect_factor_and_dimension(arg)
+                arg_factor, arg_dim = Quantity._collect_factor_and_dimension(
+                    arg)
                 factor *= arg_factor
                 dimension *= arg_dim
             return factor, dimension
         elif isinstance(expr, Pow):
             factor, dim = Quantity._collect_factor_and_dimension(expr.base)
-            exp_factor, exp_dim = Quantity._collect_factor_and_dimension(expr.exp)
+            exp_factor, exp_dim = Quantity._collect_factor_and_dimension(
+                expr.exp)
             if exp_dim.is_dimensionless:
-               exp_dim = 1
+                exp_dim = 1
             return factor ** exp_factor, dim ** (exp_factor * exp_dim)
         elif isinstance(expr, Add):
             factor, dim = Quantity._collect_factor_and_dimension(expr.args[0])
@@ -135,6 +145,13 @@ class Quantity(AtomicExpr):
                         'but it should be {2}'.format(
                             addend, addend_dim.name, dim.name))
                 factor += addend_factor
+            return factor, dim
+        elif isinstance(expr, Derivative):
+            factor, dim = Quantity._collect_factor_and_dimension(expr.args[0])
+            for independent in expr.args[1:]:
+                ifactor, idim = Quantity._collect_factor_and_dimension(independent)
+                factor /= ifactor
+                dim /= idim
             return factor, dim
         elif isinstance(expr, Function):
             fds = [Quantity._collect_factor_and_dimension(
@@ -183,7 +200,7 @@ def _Quantity_constructor_postprocessor_Add(expr):
         ).get_dimensional_dependencies().items()))
         for i in expr.args
         if i.free_symbols == set()  # do not raise if there are symbols
-                    # (free symbols could contain the units corrections)
+        # (free symbols could contain the units corrections)
     }
     # If `deset` has more than one element, then some dimensions do not
     # match in the sum:
@@ -191,6 +208,7 @@ def _Quantity_constructor_postprocessor_Add(expr):
         raise ValueError("summation of quantities of incompatible dimensions")
     return expr
 
+
 Basic._constructor_postprocessor_mapping[Quantity] = {
-    "Add" : [_Quantity_constructor_postprocessor_Add],
+    "Add": [_Quantity_constructor_postprocessor_Add],
 }

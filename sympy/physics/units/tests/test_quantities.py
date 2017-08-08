@@ -3,8 +3,8 @@
 from __future__ import division
 
 from sympy import (
-    Abs, Add, Basic, Number, Rational, S, Symbol, diff, exp, integrate, log,
-    sqrt, symbols)
+    Abs, Add, Basic, Function, Number, Rational, S, Symbol, diff, exp,
+    integrate, log, sqrt, symbols)
 from sympy.physics.units import (
     amount_of_substance, convert_to, find_unit, volume)
 from sympy.physics.units.definitions import (
@@ -289,6 +289,23 @@ def test_factor_and_dimension():
     expr = v_w1**(v_w2/v_w1)
     assert ((S(3)/2)**(S(4)/3), (length/time)**(S(4)/3)) == \
         Quantity._collect_factor_and_dimension(expr)
+
+
+def test_dimensional_expr_of_derivative():
+    l = Quantity('l', length, 36 * km)
+    t = Quantity('t', time, hour)
+    t1 = Quantity('t1', time, second)
+    x = Symbol('x')
+    y = Symbol('y')
+    f = Function('f')
+    dfdx = f(x, y).diff(x, y)
+    dl_dt = dfdx.subs({f(x, y): l, x: t, y: t1})
+    assert Quantity.get_dimensional_expr(dl_dt) ==\
+        Quantity.get_dimensional_expr(l / t / t1) ==\
+        Symbol("length")/Symbol("time")**2
+    assert Quantity._collect_factor_and_dimension(dl_dt) ==\
+        Quantity._collect_factor_and_dimension(l / t / t1) ==\
+        (10, length/time**2)
 
 
 @XFAIL
